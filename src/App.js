@@ -24,6 +24,7 @@ export default function App() {
       }
     };
   }, [locationPermissionStatus]);
+  console.log(locationPermissionStatus);
 
   return (
     <View style={{...styles.container, backgroundStyle}}>
@@ -35,8 +36,7 @@ export default function App() {
       <View style={styles.contentWrapper}>
         <Header
           localTime={localTime}
-          tzStatus={timezone.status}
-          tzValue={timezone.value}
+          timezone={timezone}
           locationPermissionStatus={locationPermissionStatus}
         />
         <Banner />

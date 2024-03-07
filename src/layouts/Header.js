@@ -10,34 +10,30 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function Header({...props}) {
-  const {locationPermissionStatus, tzValue, tzStatus, localTime} = props;
+  const {locationPermissionStatus, timezone, localTime} = props;
 
-  // const {updateDateAtMidnight} = useLocaleDate();
-  console.log('tz.value:', tzValue);
-  console.log('tz.status:', tzStatus);
+  console.log('tz.value:', timezone.value);
+  console.log('tz.status:', timezone.status);
   console.log('ijin:', locationPermissionStatus);
   console.log('localTime:', localTime);
 
-  // useEffect(() => updateDateAtMidnight(tzValue), []);
-
-  const dateAvailable =
-    locationPermissionStatus === 'granted' ||
-    locationPermissionStatus === 'pending';
+  const statusGranted = locationPermissionStatus === 'granted';
+  const statusPanding = locationPermissionStatus === 'pending';
 
   const hideNotification =
-    locationPermissionStatus === 'granted' ||
-    locationPermissionStatus === 'pending' ||
-    tzStatus === 'available';
+    statusGranted || statusPanding || timezone.status === 'available';
 
   return (
     <View style={styles.headerWrapper}>
       <View>
         <Text style={styles.textHeadline}>Today's tasks</Text>
-        {dateAvailable && (
-          <Text style={styles.textFormatDate}>
-            {localTime ? localTime : 'Obtaining the date...'}
-          </Text>
-        )}
+        <Text style={styles.textFormatDate}>
+          {statusGranted
+            ? localTime
+              ? localTime
+              : 'Obtaining the date...'
+            : "Can't access date"}
+        </Text>
       </View>
       <TouchableOpacity
         style={styles.btnNotification}

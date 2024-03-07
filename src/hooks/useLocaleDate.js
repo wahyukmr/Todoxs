@@ -1,6 +1,6 @@
 import {API_KEY} from '@env';
-import moment from 'moment-timezone';
-import {useState} from 'react';
+import {DateTime} from 'luxon';
+import {useEffect, useState} from 'react';
 import {Alert, PermissionsAndroid, Platform} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 
@@ -76,8 +76,9 @@ export default function useDate() {
         `http://api.timezonedb.com/v2.1/get-time-zone?key=${API_KEY}&format=json&by=position&lat=${position.coords.latitude}&lng=${position.coords.longitude}`,
       );
       const resTimezonedb = await fetchTimeonedb.json();
+      console.log('result:', resTimezonedb);
       setTimezone({status: 'available', value: resTimezonedb.zoneName});
-      getLocalTime(timezone.value);
+      getLocalTime(resTimezonedb.zoneName);
     } catch (error) {
       Alert.alert('Warning!', 'Unable to get user location: ' + error.message);
       setTimezone(prevState => ({...prevState, status: 'not_found'}));
@@ -85,20 +86,27 @@ export default function useDate() {
   };
 
   const getLocalTime = timezone => {
-    const localTime = moment().tz(timezone).format('EEE, dd MMMM yyyy ZZZZ');
+    console.log('local:', timezone);
+    const localTime = DateTime.now()
+      .setZone(timezone)
+      .toFormat('EEE, dd MMMM yyyy ZZZZ');
     setLocalTime(localTime);
   };
 
   const updateDateAtMidnight = timezone => {
-    const now = moment().tz(timezone);
-    const tomorrow = now.clone().add(1, 'day').startOf('day');
-    const msUntilMidnight = tomorrow.diff(now);
+    const now = DateTime.local();
+    const tomorrow = now.plus({days: 1}).startOf('day');
+    const msUntilMidnight = tomorrow.diff(now).as('milliseconds');
 
     setTimeout(() => {
-      updateDateAtMidnight(timezone);
       getLocalTime(timezone);
+      updateDateAtMidnight();
     }, msUntilMidnight);
   };
+
+  useEffect(() => {
+    updateDateAtMidnight(timezone.value);
+  }, [timezone.value]);
 
   return {
     locationPermissionStatus,
